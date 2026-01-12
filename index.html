@@ -5,7 +5,7 @@
   <title>Time Progress Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- PWA -->
+  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
 
   <style>
@@ -87,6 +87,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <div class="card">
@@ -140,7 +141,7 @@ function updateProgress() {
 
   const dayProgress = (secondsToday / 86400) * 100;
 
-  /* WEEK */
+  /* WEEK (Sunday start) */
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay());
   startOfWeek.setHours(0,0,0,0);
@@ -162,7 +163,7 @@ function updateProgress() {
   const yearProgress =
     ((now - yearStart) / (yearEnd - yearStart)) * 100;
 
-  /* COUNTDOWN */
+  /* COUNTDOWN TO MIDNIGHT */
   const midnight = new Date(now);
   midnight.setHours(24,0,0,0);
   const diff = midnight - now;
@@ -187,6 +188,13 @@ function updateProgress() {
 
 updateProgress();
 setInterval(updateProgress, 1000);
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
 </script>
 
 </body>
