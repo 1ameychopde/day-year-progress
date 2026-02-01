@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Time & Weight Progress Tracker</title>
+<title>Time & Weight Progress</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
 
@@ -31,13 +31,29 @@ h1{text-align:center;font-size:22px;margin-bottom:6px}
 .label{font-size:14px}
 .percentage{font-size:18px;font-weight:bold;color:#38bdf8;margin-bottom:4px}
 .bar{background:#1e293b;border-radius:8px;overflow:hidden;height:10px}
-.fill{height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e);width:0%;transition:.4s}
+.fill{height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e);width:0%}
 .countdown{text-align:center;font-size:16px;font-weight:bold;color:#facc15;margin-top:12px}
-.btn{
-  width:100%;margin-top:8px;padding:10px;border:none;
-  border-radius:8px;background:#22c55e;color:#020617;
-  font-weight:bold;cursor:pointer
+
+.weight-input{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
 }
+.weight-input input{
+  flex:1;
+  padding:8px;
+  border-radius:6px;
+  border:none;
+}
+.weight-input button{
+  padding:8px 12px;
+  border:none;
+  border-radius:6px;
+  background:#22c55e;
+  font-weight:bold;
+  cursor:pointer;
+}
+
 canvas{width:100%;margin-top:10px}
 .footer{text-align:center;font-size:12px;color:#64748b;margin-top:12px}
 </style>
@@ -45,6 +61,7 @@ canvas{width:100%;margin-top:10px}
 
 <body>
 <div class="card">
+
 <h1>⏱ Time & Weight Progress</h1>
 <div class="date" id="date"></div>
 
@@ -80,7 +97,11 @@ canvas{width:100%;margin-top:10px}
   <div class="label">⚖️ Weight Gain Progress</div>
   <div class="percentage" id="weightPercent"></div>
   <div class="bar"><div class="fill" id="weightBar"></div></div>
-  <button class="btn" onclick="updateWeight()">Update Today’s Weight</button>
+
+  <div class="weight-input">
+    <input type="number" step="0.1" id="weightInput" placeholder="Enter weight (kg)">
+    <button onclick="saveWeight()">Save</button>
+  </div>
 </div>
 
 <!-- GRAPH -->
@@ -90,6 +111,7 @@ canvas{width:100%;margin-top:10px}
 </div>
 
 <div class="footer">Saved locally · Offline supported</div>
+
 </div>
 
 <script>
@@ -98,8 +120,8 @@ function updateTime(){
   const now=new Date();
   document.getElementById("date").innerText=now.toDateString();
 
-  const seconds=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
-  const day=seconds/86400*100;
+  const sec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  const day=sec/86400*100;
 
   const ws=new Date(now);ws.setDate(now.getDate()-now.getDay());ws.setHours(0,0,0,0);
   const week=(now-ws)/(7*86400000)*100;
@@ -115,4 +137,86 @@ function updateTime(){
   const mid=new Date(now);mid.setHours(24,0,0,0);
   const d=mid-now;
   document.getElementById("countdown").innerText=
-    `⏳ ${Math.floor
+    `⏳ ${Math.floor(d/3600000)}h ${Math.floor(d%3600000/60000)}m ${Math.floor(d%60000/1000)}s till midnight`;
+
+  setBar("day",day);
+  setBar("week",week);
+  setBar("month",month);
+  setBar("year",year);
+}
+
+function setBar(id,val){
+  document.getElementById(id+"Percent").innerText=val.toFixed(2)+"%";
+  document.getElementById(id+"Bar").style.width=val+"%";
+}
+
+/* ---------- WEIGHT ---------- */
+const startWeight=53, targetWeight=65;
+let history=JSON.parse(localStorage.getItem("weightHistory")) || [
+  {date:new Date().toDateString(), weight:53}
+];
+
+function saveWeight(){
+  const input=document.getElementById("weightInput");
+  const w=parseFloat(input.value);
+  if(isNaN(w)) return alert("Enter valid weight");
+
+  history.push({date:new Date().toDateString(), weight:w});
+  localStorage.setItem("weightHistory", JSON.stringify(history));
+  input.value="";
+  renderWeight();
+}
+
+function renderWeight(){
+  const current=history[history.length-1].weight;
+  const prog=(current-startWeight)/(targetWeight-startWeight)*100;
+  document.getElementById("weightPercent").innerText=
+    Math.min(Math.max(prog,0),100).toFixed(2)+"%";
+  document.getElementById("weightBar").style.width=Math.min(prog,100)+"%";
+  drawChart();
+}
+
+/* ---------- GRAPH ---------- */
+function drawChart(){
+  const c=document.getElementById("chart"),ctx=c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+
+  const pad=30;
+  const weights=history.map(h=>h.weight);
+  const min=Math.min(...weights)-1;
+  const max=Math.max(...weights)+1;
+
+  ctx.strokeStyle="#1e293b";
+  for(let i=0;i<=4;i++){
+    const y=pad+i*(c.height-2*pad)/4;
+    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(c.width-pad,y);ctx.stroke();
+  }
+
+  ctx.strokeStyle="#38bdf8";ctx.lineWidth=2;ctx.beginPath();
+  history.forEach((p,i)=>{
+    const x=pad+i*(c.width-2*pad)/(history.length-1||1);
+    const y=pad+(max-p.weight)*(c.height-2*pad)/(max-min);
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    ctx.fillStyle="#22c55e";
+    ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
+  });
+  ctx.stroke();
+
+  ctx.fillStyle="#94a3b8";ctx.font="12px Arial";
+  ctx.fillText(max+" kg",5,pad);
+  ctx.fillText(min+" kg",5,c.height-pad);
+}
+
+updateTime();
+renderWeight();
+setInterval(updateTime,1000);
+</script>
+
+<script>
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+</html>
