@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Time Progress Tracker</title>
+  <title>Time & Weight Progress Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- PWA Manifest -->
@@ -25,7 +25,7 @@
       padding: 22px;
       border-radius: 14px;
       width: 100%;
-      max-width: 380px;
+      max-width: 400px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
 
@@ -39,7 +39,7 @@
       text-align: center;
       font-size: 14px;
       color: #94a3b8;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .section {
@@ -51,7 +51,7 @@
     }
 
     .percentage {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: bold;
       color: #38bdf8;
       margin-bottom: 4px;
@@ -76,7 +76,13 @@
       font-size: 18px;
       font-weight: bold;
       color: #facc15;
-      margin-top: 16px;
+      margin-top: 14px;
+    }
+
+    .weight-info {
+      font-size: 13px;
+      color: #cbd5f5;
+      margin-top: 6px;
     }
 
     .footer {
@@ -91,9 +97,10 @@
 <body>
 
 <div class="card">
-  <h1>⏱ Time Progress</h1>
+  <h1>⏱ Time & Weight Progress</h1>
   <div class="date" id="date"></div>
 
+  <!-- TIME PROGRESS -->
   <div class="section">
     <div class="label">Day Progress</div>
     <div class="percentage" id="dayPercent"></div>
@@ -120,19 +127,26 @@
 
   <div class="countdown" id="countdown"></div>
 
+  <!-- WEIGHT TRACKER -->
+  <div class="section">
+    <div class="label">⚖️ Weight Gain Progress</div>
+    <div class="percentage" id="weightPercent"></div>
+    <div class="bar"><div class="fill" id="weightBar"></div></div>
+    <div class="weight-info" id="weightInfo"></div>
+  </div>
+
   <div class="footer">
-    Updates every second · Local Time
+    Auto-updates · Local Time
   </div>
 </div>
 
 <script>
-function updateProgress() {
+/* ---------- TIME PROGRESS ---------- */
+function updateTimeProgress() {
   const now = new Date();
 
-  document.getElementById("date").innerText =
-    now.toDateString();
+  document.getElementById("date").innerText = now.toDateString();
 
-  /* DAY */
   const secondsToday =
     now.getHours() * 3600 +
     now.getMinutes() * 60 +
@@ -141,7 +155,6 @@ function updateProgress() {
 
   const dayProgress = (secondsToday / 86400) * 100;
 
-  /* WEEK (Sunday start) */
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay());
   startOfWeek.setHours(0,0,0,0);
@@ -149,21 +162,18 @@ function updateProgress() {
   const weekProgress =
     ((now - startOfWeek) / (7 * 86400000)) * 100;
 
-  /* MONTH */
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
   const monthProgress =
     ((now - monthStart) / (monthEnd - monthStart)) * 100;
 
-  /* YEAR */
   const yearStart = new Date(now.getFullYear(), 0, 1);
   const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
 
   const yearProgress =
     ((now - yearStart) / (yearEnd - yearStart)) * 100;
 
-  /* COUNTDOWN TO MIDNIGHT */
   const midnight = new Date(now);
   midnight.setHours(24,0,0,0);
   const diff = midnight - now;
@@ -175,22 +185,44 @@ function updateProgress() {
   document.getElementById("countdown").innerText =
     `⏳ ${h}h ${m}m ${s}s till midnight`;
 
-  function set(id, value) {
-    document.getElementById(id).innerText = value.toFixed(2) + "%";
-    document.getElementById(id.replace("Percent","Bar")).style.width = value + "%";
-  }
-
   set("dayPercent", dayProgress);
   set("weekPercent", weekProgress);
   set("monthPercent", monthProgress);
   set("yearPercent", yearProgress);
 }
 
-updateProgress();
-setInterval(updateProgress, 1000);
+/* ---------- WEIGHT PROGRESS ---------- */
+const startWeight = 53;
+const targetWeight = 65;
+let currentWeight = Number(localStorage.getItem("currentWeight")) || 53;
+
+function updateWeightProgress() {
+  const gained = currentWeight - startWeight;
+  const total = targetWeight - startWeight;
+  const progress = Math.max(0, Math.min((gained / total) * 100, 100));
+
+  document.getElementById("weightPercent").innerText =
+    progress.toFixed(2) + "%";
+
+  document.getElementById("weightBar").style.width =
+    progress + "%";
+
+  document.getElementById("weightInfo").innerText =
+    `Current: ${currentWeight} kg | Target: ${targetWeight} kg | Remaining: ${(targetWeight - currentWeight).toFixed(1)} kg`;
+}
+
+/* ---------- HELPER ---------- */
+function set(id, value) {
+  document.getElementById(id).innerText = value.toFixed(2) + "%";
+  document.getElementById(id.replace("Percent","Bar")).style.width = value + "%";
+}
+
+updateTimeProgress();
+updateWeightProgress();
+setInterval(updateTimeProgress, 1000);
 </script>
 
-<!-- PWA Service Worker Registration -->
+<!-- PWA Service Worker -->
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js");
