@@ -1,241 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Time & Weight Progress Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Time & Weight Progress Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
 
-  <link rel="manifest" href="manifest.json">
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-
-    .card {
-      border: 1px solid #1e293b;
-      padding: 22px;
-      border-radius: 14px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-    }
-
-    h1 {
-      text-align: center;
-      font-size: 22px;
-      margin-bottom: 6px;
-    }
-
-    .date {
-      text-align: center;
-      font-size: 14px;
-      color: #94a3b8;
-      margin-bottom: 10px;
-    }
-
-    .section {
-      margin-top: 14px;
-    }
-
-    .label {
-      font-size: 14px;
-    }
-
-    .percentage {
-      font-size: 20px;
-      font-weight: bold;
-      color: #38bdf8;
-      margin-bottom: 4px;
-    }
-
-    .bar {
-      background: #1e293b;
-      border-radius: 8px;
-      overflow: hidden;
-      height: 10px;
-    }
-
-    .fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #38bdf8, #22c55e);
-      transition: width 0.4s ease;
-    }
-
-    .countdown {
-      text-align: center;
-      font-size: 16px;
-      font-weight: bold;
-      color: #facc15;
-      margin-top: 12px;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border: none;
-      border-radius: 8px;
-      background: #22c55e;
-      color: #020617;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    canvas {
-      width: 100%;
-      margin-top: 10px;
-      background: #020617;
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: #64748b;
-      margin-top: 14px;
-    }
-  </style>
+<style>
+body{
+  font-family:Arial, sans-serif;
+  background:#020617;
+  color:#e5e7eb;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  margin:0;
+}
+.card{
+  width:100%;
+  max-width:440px;
+  border:1px solid #1e293b;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 20px 40px rgba(0,0,0,.5);
+}
+h1{text-align:center;font-size:22px;margin-bottom:6px}
+.date{text-align:center;font-size:14px;color:#94a3b8;margin-bottom:10px}
+.section{margin-top:14px}
+.label{font-size:14px}
+.percentage{font-size:18px;font-weight:bold;color:#38bdf8;margin-bottom:4px}
+.bar{background:#1e293b;border-radius:8px;overflow:hidden;height:10px}
+.fill{height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e);width:0%;transition:.4s}
+.countdown{text-align:center;font-size:16px;font-weight:bold;color:#facc15;margin-top:12px}
+.btn{
+  width:100%;margin-top:8px;padding:10px;border:none;
+  border-radius:8px;background:#22c55e;color:#020617;
+  font-weight:bold;cursor:pointer
+}
+canvas{width:100%;margin-top:10px}
+.footer{text-align:center;font-size:12px;color:#64748b;margin-top:12px}
+</style>
 </head>
 
 <body>
-
 <div class="card">
-  <h1>⏱ Time & Weight Progress</h1>
-  <div class="date" id="date"></div>
+<h1>⏱ Time & Weight Progress</h1>
+<div class="date" id="date"></div>
 
-  <!-- TIME -->
-  <div class="section">
-    <div class="label">Day Progress</div>
-    <div class="percentage" id="dayPercent"></div>
-    <div class="bar"><div class="fill" id="dayBar"></div></div>
-  </div>
+<!-- TIME -->
+<div class="section">
+  <div class="label">Day Progress</div>
+  <div class="percentage" id="dayPercent"></div>
+  <div class="bar"><div class="fill" id="dayBar"></div></div>
+</div>
 
-  <div class="countdown" id="countdown"></div>
+<div class="section">
+  <div class="label">Week Progress</div>
+  <div class="percentage" id="weekPercent"></div>
+  <div class="bar"><div class="fill" id="weekBar"></div></div>
+</div>
 
-  <!-- WEIGHT -->
-  <div class="section">
-    <div class="label">⚖️ Weight Gain Progress</div>
-    <div class="percentage" id="weightPercent"></div>
-    <div class="bar"><div class="fill" id="weightBar"></div></div>
-    <button class="btn" onclick="updateWeight()">Update Today’s Weight</button>
-  </div>
+<div class="section">
+  <div class="label">Month Progress</div>
+  <div class="percentage" id="monthPercent"></div>
+  <div class="bar"><div class="fill" id="monthBar"></div></div>
+</div>
 
-  <!-- GRAPH -->
-  <div class="section">
-    <div class="label">📈 Weight History</div>
-    <canvas id="weightChart" height="120"></canvas>
-  </div>
+<div class="section">
+  <div class="label">Year Progress</div>
+  <div class="percentage" id="yearPercent"></div>
+  <div class="bar"><div class="fill" id="yearBar"></div></div>
+</div>
 
-  <div class="footer">Saved locally · No login required</div>
+<div class="countdown" id="countdown"></div>
+
+<!-- WEIGHT -->
+<div class="section">
+  <div class="label">⚖️ Weight Gain Progress</div>
+  <div class="percentage" id="weightPercent"></div>
+  <div class="bar"><div class="fill" id="weightBar"></div></div>
+  <button class="btn" onclick="updateWeight()">Update Today’s Weight</button>
+</div>
+
+<!-- GRAPH -->
+<div class="section">
+  <div class="label">📈 Weight History</div>
+  <canvas id="chart" height="160"></canvas>
+</div>
+
+<div class="footer">Saved locally · Offline supported</div>
 </div>
 
 <script>
-/* -------- TIME -------- */
-function updateTime() {
-  const now = new Date();
-  document.getElementById("date").innerText = now.toDateString();
+/* ---------- TIME ---------- */
+function updateTime(){
+  const now=new Date();
+  document.getElementById("date").innerText=now.toDateString();
 
-  const seconds =
-    now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
-  const dayProgress = (seconds / 86400) * 100;
+  const seconds=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  const day=seconds/86400*100;
 
-  const midnight = new Date(now);
-  midnight.setHours(24,0,0,0);
-  const diff = midnight - now;
+  const ws=new Date(now);ws.setDate(now.getDate()-now.getDay());ws.setHours(0,0,0,0);
+  const week=(now-ws)/(7*86400000)*100;
 
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
+  const ms=new Date(now.getFullYear(),now.getMonth(),1);
+  const me=new Date(now.getFullYear(),now.getMonth()+1,1);
+  const month=(now-ms)/(me-ms)*100;
 
-  document.getElementById("dayPercent").innerText = dayProgress.toFixed(2) + "%";
-  document.getElementById("dayBar").style.width = dayProgress + "%";
-  document.getElementById("countdown").innerText =
-    `⏳ ${h}h ${m}m ${s}s till midnight`;
-}
+  const ys=new Date(now.getFullYear(),0,1);
+  const ye=new Date(now.getFullYear()+1,0,1);
+  const year=(now-ys)/(ye-ys)*100;
 
-/* -------- WEIGHT -------- */
-const startWeight = 53;
-const targetWeight = 65;
-
-let weightHistory =
-  JSON.parse(localStorage.getItem("weightHistory")) || [
-    { date: new Date().toDateString(), weight: 53 }
-  ];
-
-function updateWeight() {
-  const value = prompt("Enter today’s weight (kg):");
-  if (!value) return;
-
-  const weight = parseFloat(value);
-  if (isNaN(weight)) return alert("Invalid weight");
-
-  weightHistory.push({
-    date: new Date().toDateString(),
-    weight
-  });
-
-  localStorage.setItem("weightHistory", JSON.stringify(weightHistory));
-  renderWeight();
-}
-
-function renderWeight() {
-  const current = weightHistory[weightHistory.length - 1].weight;
-  const progress = ((current - startWeight) / (targetWeight - startWeight)) * 100;
-
-  document.getElementById("weightPercent").innerText =
-    Math.max(0, Math.min(progress, 100)).toFixed(2) + "%";
-  document.getElementById("weightBar").style.width =
-    Math.min(progress, 100) + "%";
-
-  drawChart();
-}
-
-/* -------- GRAPH -------- */
-function drawChart() {
-  const canvas = document.getElementById("weightChart");
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  const maxW = Math.max(...weightHistory.map(w => w.weight));
-  const minW = Math.min(...weightHistory.map(w => w.weight));
-  const padding = 20;
-
-  ctx.strokeStyle = "#38bdf8";
-  ctx.beginPath();
-
-  weightHistory.forEach((p, i) => {
-    const x = padding + i * ((canvas.width - padding*2) / (weightHistory.length - 1 || 1));
-    const y =
-      canvas.height -
-      ((p.weight - minW) / (maxW - minW || 1)) *
-      (canvas.height - padding*2) -
-      padding;
-
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-
-  ctx.stroke();
-}
-
-updateTime();
-renderWeight();
-setInterval(updateTime, 1000);
-</script>
-
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
-</script>
-
-</body>
-</html>
+  const mid=new Date(now);mid.setHours(24,0,0,0);
+  const d=mid-now;
+  document.getElementById("countdown").innerText=
+    `⏳ ${Math.floor
